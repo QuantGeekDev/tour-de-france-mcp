@@ -1,13 +1,13 @@
 import { MCPTool } from "mcp-framework";
 import { z } from "zod";
-import { apiGet, DEFAULT_YEAR } from "../apiClient.js";
+import { apiGet, DEFAULT_YEAR, paginate } from "../apiClient.js";
 
 const schema = z.object({
   year: z
     .number()
     .int()
     .default(DEFAULT_YEAR)
-    .describe("Four-digit edition year (e.g. 2026)"),
+    .describe("Four-digit Tour de France edition year (e.g. 2026)"),
   stage: z
     .number()
     .int()
@@ -15,18 +15,31 @@ const schema = z.object({
     .max(21)
     .default(1)
     .describe("Stage number 1-21 (0 = pre-race / general bucket for some rankings)"),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Max items to return (pagination). Omit for all."),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .describe("Number of items to skip from the start (pagination)."),
 });
 
 type Input = z.infer<typeof schema>;
 
 class GetRankingTypeJerseysTool extends MCPTool<Input, typeof schema> {
-  name = "get_ranking_type_jerseys";
+  name = "tdf_jersey_standings";
   description =
-    "Classification-jersey leaders for a stage: yellow (overall/GC), green (points), polka-dot (mountains/KOM), and white (best young rider). Returns ranking documents grouped by jersey type; join bib to get_all_competitors for the rider. Empty before the stage has results.";
+    "Tour de France jersey standings for a stage (yellow / green / polka-dot / white).";
   schema = schema;
 
-  async execute({ year, stage }: Input) {
-    return apiGet(`/api/rankingTypeJerseys-${year}-${stage}`);
+  async execute({ year, stage, limit, offset }: Input) {
+    const rows = (await apiGet(`/api/rankingTypeJerseys-${year}-${stage}`)) as unknown[];
+    return paginate(rows, limit, offset);
   }
 }
 

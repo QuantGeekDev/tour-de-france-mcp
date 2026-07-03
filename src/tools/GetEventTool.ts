@@ -7,9 +7,9 @@ const schema = z.object({});
 type Input = z.infer<typeof schema>;
 
 class GetEventTool extends MCPTool<Input, typeof schema> {
-  name = "get_event";
+  name = "tdf_event";
   description =
-    "Site/edition configuration for the Race Center: ad-unit path, radio stream URL, and display flags (e.g. hideInsideRace). Operational config, not race data; for stages or results use get_stages or get_ranking_type. Returns a single-object array.";
+    "Tour de France global event configuration (ad units, live-radio URL, display flags).";
   schema = schema;
 
   async execute(_input: Input) {

@@ -53,6 +53,16 @@ export interface GetOptions {
 }
 
 /**
+ * Apply offset/limit paging to an array. `offset` skips from the start;
+ * `limit` (when set) caps the number of items returned. Non-arrays pass through.
+ */
+export function paginate<T>(rows: T[], limit?: number, offset = 0): T[] {
+  if (!Array.isArray(rows)) return rows;
+  const start = offset > 0 ? offset : 0;
+  return typeof limit === "number" ? rows.slice(start, start + limit) : rows.slice(start);
+}
+
+/**
  * Perform a GET against the Race Center API and return parsed JSON.
  *
  * - HTTP 204 (returned by live/results endpoints before their stage is under

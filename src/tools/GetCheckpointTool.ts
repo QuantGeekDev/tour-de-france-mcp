@@ -7,7 +7,7 @@ const schema = z.object({
     .number()
     .int()
     .default(DEFAULT_YEAR)
-    .describe("Four-digit edition year (e.g. 2026)"),
+    .describe("Four-digit Tour de France edition year (e.g. 2026)"),
   stage: z
     .number()
     .int()
@@ -20,9 +20,9 @@ const schema = z.object({
 type Input = z.infer<typeof schema>;
 
 class GetCheckpointTool extends MCPTool<Input, typeof schema> {
-  name = "get_checkpoint";
+  name = "tdf_active_checkpoint";
   description =
-    "The single currently-active checkpoint for a stage during live racing, i.e. roughly where the head of the race is now. Only meaningful while the stage is running; for the complete route use get_checkpoint_list. Returns one wrapped checkpoint document.";
+    "Tour de France currently-active checkpoint for a stage (single live document).";
   schema = schema;
 
   async execute({ year, stage }: Input) {

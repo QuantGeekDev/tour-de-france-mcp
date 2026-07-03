@@ -1,13 +1,13 @@
 import { MCPTool } from "mcp-framework";
 import { z } from "zod";
-import { apiGet, DEFAULT_YEAR } from "../apiClient.js";
+import { apiGet, DEFAULT_YEAR, paginate } from "../apiClient.js";
 
 const schema = z.object({
   year: z
     .number()
     .int()
     .default(DEFAULT_YEAR)
-    .describe("Four-digit edition year (e.g. 2026)"),
+    .describe("Four-digit Tour de France edition year (e.g. 2026)"),
   bib: z
     .number()
     .int()
@@ -16,7 +16,19 @@ const schema = z.object({
   team: z
     .string()
     .optional()
-    .describe("If set, return only riders on this team code (e.g. 'UAD', 'COF')."),
+    .describe("If set, return only riders on this team code (e.g. 'UEX', 'COF')."),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Max riders to return (pagination). Omit for all."),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .describe("Number of riders to skip from the start (pagination)."),
   full: z
     .boolean()
     .default(false)
@@ -81,23 +93,30 @@ function teamIdFromRef(ref: unknown): string | null {
 }
 
 class GetAllCompetitorsTool extends MCPTool<Input, typeof schema> {
-  name = "get_all_competitors";
+  name = "tdf_riders";
   description =
-    "Rider start list for an edition (identity, nationality, career stats, team). " +
-    "Join to rankings via `bib`. Compact by default and resolves each rider's team " +
-    "code/name; pass full=true for images and links, or filter with bib=N / team=CODE.";
+    "Tour de France rider start list for an edition (identity, nationality, career " +
+    "stats, team). Join to rankings via bib. Compact by default and resolves each " +
+    "rider's team code/name; pass full=true for images and links, or filter with " +
+    "bib=N / team=CODE.";
   schema = schema;
 
-  async execute({ year, bib, team, full, raw }: Input) {
+  async execute({ year, bib, team, full, raw, limit, offset }: Input) {
     let data = (await apiGet(`/api/allCompetitors-${year}`, { raw })) as Array<
       Record<string, unknown>
     >;
+
+    // The upstream feed mixes rider AND team objects (teams have no `bib`);
+    // keep only actual riders. Then sort by bib for coherent output/paging.
+    data = data
+      .filter((c) => typeof c?.bib === "number")
+      .sort((a, b) => (a.bib as number) - (b.bib as number));
 
     if (typeof bib === "number") {
       data = data.filter((c) => c?.bib === bib);
     }
 
-    // Raw mode: no team resolution, no compaction — return as-is (after bib filter).
+    // Raw mode: no team resolution, no compaction — return as-is (after filters).
     if (raw) {
       if (team) {
         // Best-effort: resolve the requested code to a hash and match $team.
@@ -107,20 +126,23 @@ class GetAllCompetitorsTool extends MCPTool<Input, typeof schema> {
           if (info.code.toUpperCase() === team.toUpperCase()) wantHash = id;
         data = data.filter((c) => teamIdFromRef(c.$team) === wantHash);
       }
-      return data;
+      return paginate(data, limit, offset);
     }
 
     const byId = await teamsById(year);
-    const resolved = data.map((c) => {
+    let resolved = data.map((c) => {
       const info = byId.get(teamIdFromRef(c.$team) ?? "");
       const base = full ? { ...c } : pick(c, COMPACT_FIELDS);
       delete (base as Record<string, unknown>).$team;
       return { ...base, team: info?.code ?? null, teamName: info?.name ?? null };
     });
 
-    return team
-      ? resolved.filter((c) => c.team?.toUpperCase() === team.toUpperCase())
-      : resolved;
+    if (team) {
+      resolved = resolved.filter(
+        (c) => c.team?.toUpperCase() === team.toUpperCase(),
+      );
+    }
+    return paginate(resolved, limit, offset);
   }
 }
 

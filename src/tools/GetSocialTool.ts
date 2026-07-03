@@ -1,19 +1,33 @@
 import { MCPTool } from "mcp-framework";
 import { z } from "zod";
-import { apiGet, DEFAULT_YEAR } from "../apiClient.js";
+import { apiGet, DEFAULT_YEAR, paginate } from "../apiClient.js";
 
-const schema = z.object({});
+const schema = z.object({
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Max items to return (pagination). Omit for all."),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .describe("Number of items to skip from the start (pagination)."),
+});
 
 type Input = z.infer<typeof schema>;
 
 class GetSocialTool extends MCPTool<Input, typeof schema> {
-  name = "get_social";
+  name = "tdf_social";
   description =
-    "Curated social-media embed items shown on the site. Marketing content, not race results, and usually empty outside active campaigns or live coverage. Returns an array (often empty).";
+    "Tour de France curated social-media embeds feed. Usually empty outside active promotion.";
   schema = schema;
 
-  async execute(_input: Input) {
-    return apiGet(`/api/social`);
+  async execute({ limit, offset }: Input) {
+    const rows = (await apiGet(`/api/social`)) as unknown[];
+    return paginate(rows, limit, offset);
   }
 }
 

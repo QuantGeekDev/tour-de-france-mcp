@@ -1,25 +1,38 @@
 import { MCPTool } from "mcp-framework";
 import { z } from "zod";
-import { apiGet, DEFAULT_YEAR } from "../apiClient.js";
+import { apiGet, DEFAULT_YEAR, paginate } from "../apiClient.js";
 
 const schema = z.object({
   year: z
     .number()
     .int()
     .default(DEFAULT_YEAR)
-    .describe("Four-digit edition year (e.g. 2026)"),
+    .describe("Four-digit Tour de France edition year (e.g. 2026)"),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Max items to return (pagination). Omit for all."),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .describe("Number of items to skip from the start (pagination)."),
 });
 
 type Input = z.infer<typeof schema>;
 
 class GetTelemetryCompetitorTool extends MCPTool<Input, typeof schema> {
-  name = "get_telemetry_competitor";
+  name = "tdf_rider_telemetry";
   description =
-    "LIVE per-rider GPS telemetry (position, speed, gap to leader) for the whole field. Only has data while a stage is actively being raced; returns [] at all other times (including before the 2026 Tour begins). For the start list and rider identities use get_all_competitors instead.";
+    "Tour de France live per-rider telemetry (position, speed, gap). Empty until the stage is racing.";
   schema = schema;
 
-  async execute({ year }: Input) {
-    return apiGet(`/api/telemetryCompetitor-${year}`);
+  async execute({ year, limit, offset }: Input) {
+    const rows = (await apiGet(`/api/telemetryCompetitor-${year}`)) as unknown[];
+    return paginate(rows, limit, offset);
   }
 }
 

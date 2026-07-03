@@ -1,13 +1,13 @@
 import { MCPTool } from "mcp-framework";
 import { z } from "zod";
-import { apiGet, DEFAULT_YEAR } from "../apiClient.js";
+import { apiGet, DEFAULT_YEAR, paginate } from "../apiClient.js";
 
 const schema = z.object({
   year: z
     .number()
     .int()
     .default(DEFAULT_YEAR)
-    .describe("Four-digit edition year (e.g. 2026)"),
+    .describe("Four-digit Tour de France edition year (e.g. 2026)"),
   stage: z
     .number()
     .int()
@@ -15,18 +15,31 @@ const schema = z.object({
     .max(21)
     .default(1)
     .describe("Stage number 1-21 (0 = pre-race / general bucket for some rankings)"),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Max items to return (pagination). Omit for all."),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .describe("Number of items to skip from the start (pagination)."),
 });
 
 type Input = z.infer<typeof schema>;
 
 class GetFantasyTool extends MCPTool<Input, typeof schema> {
-  name = "get_fantasy";
+  name = "tdf_fantasy";
   description =
-    "Fantasy-game metadata for a stage (rider picks/values used by the official fantasy game). Not race results, use get_ranking_type for those. Often empty outside the fantasy context.";
+    "Tour de France fantasy-game data for a stage.";
   schema = schema;
 
-  async execute({ year, stage }: Input) {
-    return apiGet(`/api/fantasy-${year}-${stage}`);
+  async execute({ year, stage, limit, offset }: Input) {
+    const rows = (await apiGet(`/api/fantasy-${year}-${stage}`)) as unknown[];
+    return paginate(rows, limit, offset);
   }
 }
 

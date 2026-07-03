@@ -32,10 +32,13 @@ curl -s http://127.0.0.1:8080/mcp \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json, text/event-stream' \
   -H 'Mcp-Session-Id: <SID>' \
-  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_stages","arguments":{"year":2026}}}'
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"tdf_stages","arguments":{"year":2026}}}'
 ```
 
 ## Tools (22)
+
+All tools are prefixed `tdf_` and every description names "Tour de France", so they
+stay self-identifying even when a client shows the server as an opaque id.
 
 Common parameters: `year` (default `2026`), `stage` (1–21, default `1`; `0` =
 pre-race/general on some rankings), `lang` (`en`/`fr`/`es`/`de`, default `en`).
@@ -43,40 +46,44 @@ Live/results tools return `[]` until their stage is under way.
 
 Responses are **compact by default**: backend bookkeeping keys (`_bind`, `_origin`,
 `_parent`, `_virtual`, `_updatedAt`, `_gets`) are stripped everywhere (`_id`/`_key`
-are kept as join keys). The two heavy tools shrink dramatically:
+are kept as join keys). All list tools accept `limit` / `offset` for pagination
+(`tdf_event` and `tdf_active_checkpoint` are single-object and don't). The two heavy
+tools also shrink dramatically:
 
 | Tool | Extra params | Default size | Notes |
 | --- | --- | --- | --- |
-| `get_stages` | `stage?`, `full?`, `raw?` | ~12 KB (was ~164 KB) | drops per-city French description HTML unless `full:true`; `stage:N` returns one stage (~0.5 KB) |
-| `get_all_competitors` | `bib?`, `team?`, `full?`, `raw?` | ~51 KB (was ~236 KB) | drops image URLs/links unless `full:true`; resolves each rider's `team`/`teamName`; filter with `bib:N` or `team:"UEX"` |
+| `tdf_stages` | `stage?`, `full?`, `raw?` | ~12 KB (was ~164 KB) | sorted by stage; drops per-city French HTML unless `full:true`; `stage:N` → one stage (~0.5 KB) |
+| `tdf_riders` | `bib?`, `team?`, `full?`, `raw?` | ~51 KB (was ~236 KB) | 184 riders (teams filtered out), sorted by bib; drops image URLs unless `full:true`; resolves each rider's `team`/`teamName`; filter with `bib:N` / `team:"UEX"` |
 
-Pass `full:true` to get the complete payload, or `raw:true` to also keep the backend
-`_` metadata (and, for competitors, the opaque `$team` hash instead of resolved codes).
+Pass `full:true` for the complete payload, or `raw:true` to keep backend `_` metadata
+(and, for riders, the opaque `$team` hash instead of the resolved code).
 
 | Tool | Params | Endpoint |
 | --- | --- | --- |
-| `get_event` | – | `/api/event` |
-| `get_social` | – | `/api/social` |
-| `get_ads` | – | `/api/ad` |
-| `get_stages` | year | `/api/stage-{year}` |
-| `get_teams` | year | `/api/team-{year}` |
-| `get_all_competitors` | year | `/api/allCompetitors-{year}` |
-| `get_telemetry_competitor` | year | `/api/telemetryCompetitor-{year}` |
-| `get_ranking_type` | year, stage | `/api/rankingType-{year}-{stage}` |
-| `get_ranking_type_arrival` | year, stage | `/api/rankingTypeArrival-{year}-{stage}` |
-| `get_ranking_type_jerseys` | year, stage | `/api/rankingTypeJerseys-{year}-{stage}` |
-| `get_ranking_type_trial` | year, stage | `/api/rankingTypeTrial-{year}-{stage}` |
-| `get_ranking_type_widget` | year, stage | `/api/rankingTypeWidget-{year}-{stage}` |
-| `get_checkpoint_list` | year, stage | `/api/checkpointList-{year}-{stage}` |
-| `get_checkpoint` | year, stage | `/api/checkpoint-{year}-{stage}` |
-| `get_pack` | year, stage | `/api/pack-{year}-{stage}` |
-| `get_telemetry_pack` | year, stage | `/api/telemetryPack-{year}-{stage}` |
-| `get_flash_info_live` | year, stage | `/api/flashInfoLive-{year}-{stage}` |
-| `get_stage_withdrawals` | year, stage | `/api/stageWithdrawals-{year}-{stage}` |
-| `get_fantasy` | year, stage | `/api/fantasy-{year}-{stage}` |
-| `get_insights` | year, stage | `/api/insights-{year}-{stage}` |
-| `get_extra_vehicle` | year, stage | `/api/extraVehicle-{year}-{stage}` |
-| `get_publication` | lang, year, stage | `/api/publication_{lang}-{year}-{stage}` |
+| `tdf_event` | – | `/api/event` |
+| `tdf_social` | limit, offset | `/api/social` |
+| `tdf_ads` | limit, offset | `/api/ad` |
+| `tdf_stages` | year, stage?, full?, raw?, +page | `/api/stage-{year}` |
+| `tdf_teams` | year, +page | `/api/team-{year}` |
+| `tdf_riders` | year, bib?, team?, full?, raw?, +page | `/api/allCompetitors-{year}` |
+| `tdf_rider_telemetry` | year, +page | `/api/telemetryCompetitor-{year}` |
+| `tdf_rankings` | year, stage, +page | `/api/rankingType-{year}-{stage}` |
+| `tdf_stage_results` | year, stage, +page | `/api/rankingTypeArrival-{year}-{stage}` |
+| `tdf_jersey_standings` | year, stage, +page | `/api/rankingTypeJerseys-{year}-{stage}` |
+| `tdf_time_trial_rankings` | year, stage, +page | `/api/rankingTypeTrial-{year}-{stage}` |
+| `tdf_rankings_widget` | year, stage, +page | `/api/rankingTypeWidget-{year}-{stage}` |
+| `tdf_checkpoints` | year, stage, +page | `/api/checkpointList-{year}-{stage}` |
+| `tdf_active_checkpoint` | year, stage | `/api/checkpoint-{year}-{stage}` |
+| `tdf_race_groups` | year, stage, +page | `/api/pack-{year}-{stage}` |
+| `tdf_group_telemetry` | year, stage, +page | `/api/telemetryPack-{year}-{stage}` |
+| `tdf_live_commentary` | year, stage, +page | `/api/flashInfoLive-{year}-{stage}` |
+| `tdf_withdrawals` | year, stage, +page | `/api/stageWithdrawals-{year}-{stage}` |
+| `tdf_fantasy` | year, stage, +page | `/api/fantasy-{year}-{stage}` |
+| `tdf_insights` | year, stage, +page | `/api/insights-{year}-{stage}` |
+| `tdf_convoy_vehicles` | year, stage, +page | `/api/extraVehicle-{year}-{stage}` |
+| `tdf_stage_article` | lang, year, stage, +page | `/api/publication_{lang}-{year}-{stage}` |
+
+*(+page = optional `limit` / `offset`.)*
 
 ## Project structure
 
@@ -106,8 +113,8 @@ const schema = z.object({
 type Input = z.infer<typeof schema>;
 
 class GetStagesTool extends MCPTool<Input, typeof schema> {
-  name = "get_stages";
-  description = "All stages of an edition.";
+  name = "tdf_stages";
+  description = "Tour de France stages of an edition.";
   schema = schema;
   async execute({ year }: Input) {
     return apiGet(`/api/stage-${year}`);
