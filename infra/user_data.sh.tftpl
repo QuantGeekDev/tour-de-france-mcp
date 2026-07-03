@@ -1,0 +1,90 @@
+#!/bin/bash
+set -euxo pipefail
+
+# ---------------------------------------------------------------------------
+# Values injected by Terraform
+# ---------------------------------------------------------------------------
+DOMAIN="${domain}"
+EMAIL="${email}"
+REPO="${repo_url}"
+APP_DIR=/opt/tour-de-france-mcp
+CADDY_URL="https://github.com/caddyserver/caddy/releases/download/v2.8.4/caddy_2.8.4_linux_amd64.tar.gz"
+
+# ---------------------------------------------------------------------------
+# Node.js 20 + build tooling
+# ---------------------------------------------------------------------------
+curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+dnf install -y nodejs git tar
+
+# ---------------------------------------------------------------------------
+# Clone + build the MCP server
+# ---------------------------------------------------------------------------
+git clone "$REPO" "$APP_DIR"
+cd "$APP_DIR"
+npm install
+npm run build
+
+# ---------------------------------------------------------------------------
+# systemd unit for the MCP server (listens on 127.0.0.1:8080)
+# ---------------------------------------------------------------------------
+cat >/etc/systemd/system/tdf-mcp.service <<UNIT
+[Unit]
+Description=Tour de France MCP server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=$APP_DIR
+ExecStart=/usr/bin/node $APP_DIR/dist/index.js
+Restart=always
+RestartSec=3
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+systemctl daemon-reload
+systemctl enable --now tdf-mcp.service
+
+# ---------------------------------------------------------------------------
+# Caddy reverse proxy with automatic HTTPS (Let's Encrypt)
+# ---------------------------------------------------------------------------
+curl -fsSL "$CADDY_URL" -o /tmp/caddy.tar.gz
+tar -xzf /tmp/caddy.tar.gz -C /usr/local/bin caddy
+chmod +x /usr/local/bin/caddy
+
+useradd --system --home-dir /var/lib/caddy --create-home --shell /usr/sbin/nologin caddy || true
+mkdir -p /etc/caddy
+
+cat >/etc/caddy/Caddyfile <<CADDYCONF
+{
+    email $EMAIL
+}
+
+$DOMAIN {
+    reverse_proxy 127.0.0.1:8080
+}
+CADDYCONF
+
+cat >/etc/systemd/system/caddy.service <<UNIT
+[Unit]
+Description=Caddy web server
+After=network.target
+
+[Service]
+User=caddy
+Group=caddy
+ExecStart=/usr/local/bin/caddy run --environ --config /etc/caddy/Caddyfile
+ExecReload=/usr/local/bin/caddy reload --config /etc/caddy/Caddyfile --force
+Restart=on-failure
+RestartSec=3
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+LimitNOFILE=1048576
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+systemctl daemon-reload
+systemctl enable --now caddy.service

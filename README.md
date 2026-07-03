@@ -37,10 +37,21 @@ curl -s http://127.0.0.1:8080/mcp \
 
 ## Tools (22)
 
-Every tool returns the raw JSON from the corresponding endpoint. Parameters:
-`year` (default `2026`), `stage` (1–21, default `1`; `0` = pre-race/general on some
-rankings), `lang` (`en`/`fr`/`es`/`de`, default `en`). Live/results tools return `[]`
-until their stage is under way.
+Common parameters: `year` (default `2026`), `stage` (1–21, default `1`; `0` =
+pre-race/general on some rankings), `lang` (`en`/`fr`/`es`/`de`, default `en`).
+Live/results tools return `[]` until their stage is under way.
+
+Responses are **compact by default**: backend bookkeeping keys (`_bind`, `_origin`,
+`_parent`, `_virtual`, `_updatedAt`, `_gets`) are stripped everywhere (`_id`/`_key`
+are kept as join keys). The two heavy tools shrink dramatically:
+
+| Tool | Extra params | Default size | Notes |
+| --- | --- | --- | --- |
+| `get_stages` | `stage?`, `full?`, `raw?` | ~12 KB (was ~164 KB) | drops per-city French description HTML unless `full:true`; `stage:N` returns one stage (~0.5 KB) |
+| `get_all_competitors` | `bib?`, `team?`, `full?`, `raw?` | ~51 KB (was ~236 KB) | drops image URLs/links unless `full:true`; resolves each rider's `team`/`teamName`; filter with `bib:N` or `team:"UEX"` |
+
+Pass `full:true` to get the complete payload, or `raw:true` to also keep the backend
+`_` metadata (and, for competitors, the opaque `$team` hash instead of resolved codes).
 
 | Tool | Params | Endpoint |
 | --- | --- | --- |
@@ -115,6 +126,14 @@ export default GetStagesTool;
   explicit `.js` extensions (`../apiClient.js`).
 - This server talks to an **unofficial** ASO feed reverse-engineered from the site.
   It can change without notice — keep request rates gentle.
+- **Encoding / mojibake.** The upstream API is UTF-8 (`charset=utf-8`) and this server
+  emits UTF-8 on the wire — verified: `é` is bytes `c3 a9`, and e.g. "Kévin Vauquelin"
+  round-trips correctly through a `tools/call`. If a client shows `Ã©`/`�` for French
+  accents, that's the **client decoding UTF-8 as latin1/cp1252**, not a server bug. Note
+  the HTTP-stream transport sends `Content-Type: text/event-stream` without an explicit
+  `charset` (SSE is UTF-8 by spec); some clients still guess wrong. Keeping responses
+  compact (above) also avoids the "payload too big → spilled to a file → re-encoded"
+  path that commonly introduces mojibake.
 
 ## Use with an MCP client (stdio alternative)
 
