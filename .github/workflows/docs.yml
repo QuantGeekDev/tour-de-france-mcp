@@ -1,0 +1,76 @@
+name: Deploy docs
+
+# Push/merge to main that touches the docs site rebuilds the Fumadocs static
+# export and syncs it to S3, then invalidates CloudFront. Auth is short-lived
+# GitHub OIDC -> a scoped AWS role (no stored credentials). Config values are
+# non-secret repo *variables* (vars.*):
+#   AWS_DOCS_DEPLOY_ROLE_ARN, AWS_REGION, DOCS_S3_BUCKET, DOCS_CF_DISTRIBUTION_ID
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-docs
+  cancel-in-progress: true
+
+permissions:
+  id-token: write # required to request the OIDC token
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: docs
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build static export
+        run: npm run build
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DOCS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Sync hashed assets (long cache)
+        run: |
+          aws s3 sync out/_next "s3://${{ vars.DOCS_S3_BUCKET }}/_next" \
+            --delete \
+            --cache-control "public,max-age=31536000,immutable"
+
+      - name: Sync the rest (short cache)
+        run: |
+          aws s3 sync out "s3://${{ vars.DOCS_S3_BUCKET }}" \
+            --delete \
+            --exclude "_next/*" \
+            --cache-control "public,max-age=60,must-revalidate"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.DOCS_CF_DISTRIBUTION_ID }}" \
+            --paths "/*"
+
+      - name: Smoke-test the site
+        run: |
+          set -euo pipefail
+          code=$(curl -s -o /dev/null -w '%{http_code}' https://tdf-docs.andru.codes/docs/)
+          echo "GET /docs/ -> $code"
+          [ "$code" = "200" ]

@@ -1,0 +1,85 @@
+---
+title: Media & meta
+description: Editorial articles, insights, fantasy, social embeds and ad placements.
+---
+
+Editorial, promotional and platform-configuration feeds. Some are often empty
+outside of active promotion.
+
+## `tdf_stage_article`
+
+Localized editorial / CMS article content for a stage.
+
+**Endpoint:** `GET /api/publication_{lang}-{year}-{stage}`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `lang` | enum | `en` | Content language: `en`, `fr`, `es`, `de`. |
+| `year` | integer | `2026` | Four-digit edition year. |
+| `stage` | integer | `1` | Stage number `1`–`21`. |
+| `limit` / `offset` | integer | — / `0` | Pagination. |
+
+```jsonc
+// French stage-12 article
+{ "name": "tdf_stage_article", "arguments": { "lang": "fr", "year": 2026, "stage": 12 } }
+```
+
+## `tdf_insights`
+
+Statistics / insight cards for a stage.
+
+**Endpoint:** `GET /api/insights-{year}-{stage}`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `year` | integer | `2026` | Four-digit edition year. |
+| `stage` | integer | `1` | Stage number `1`–`21`. |
+| `limit` / `offset` | integer | — / `0` | Pagination. |
+
+```jsonc
+{ "name": "tdf_insights", "arguments": { "year": 2026, "stage": 12 } }
+```
+
+## `tdf_fantasy`
+
+Fantasy-game data for a stage.
+
+**Endpoint:** `GET /api/fantasy-{year}-{stage}`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `year` | integer | `2026` | Four-digit edition year. |
+| `stage` | integer | `1` | Stage number `1`–`21`. |
+| `limit` / `offset` | integer | — / `0` | Pagination. |
+
+```jsonc
+{ "name": "tdf_fantasy", "arguments": { "year": 2026, "stage": 12 } }
+```
+
+## `tdf_social`
+
+Curated social-media embeds feed. Usually empty outside of active promotion.
+
+**Endpoint:** `GET /api/social`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `limit` / `offset` | integer | — / `0` | Pagination. |
+
+```jsonc
+{ "name": "tdf_social", "arguments": {} }
+```
+
+## `tdf_ads`
+
+Advertising placement definitions used by the Race Center front-end.
+
+**Endpoint:** `GET /api/ad`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `limit` / `offset` | integer | — / `0` | Pagination. |
+
+```jsonc
+{ "name": "tdf_ads", "arguments": {} }
+```

@@ -1,0 +1,83 @@
+---
+title: Race structure
+description: Event configuration, stages, teams and the rider start list.
+---
+
+Reference data describing an edition. These tools are populated before the race
+starts and stay largely stable throughout it.
+
+## `tdf_event`
+
+Global event configuration (ad units, live-radio URL, display flags).
+
+**Endpoint:** `GET /api/event` · **Returns:** single object · takes no parameters.
+
+```jsonc
+{ "name": "tdf_event", "arguments": {} }
+```
+
+## `tdf_stages`
+
+Stages of an edition (usually 21): stage number, type, dates, start/finish
+cities and distance. Sorted by stage number. Compact by default — the long
+French route descriptions are ~96% of the payload and are dropped unless you
+pass `full: true`.
+
+**Endpoint:** `GET /api/stage-{year}`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `year` | integer | `2026` | Four-digit edition year. |
+| `stage` | integer | — | If set (`1`–`21`), return only that stage. |
+| `full` | boolean | `false` | Include the long per-city route HTML (~160 KB). |
+| `raw` | boolean | `false` | Keep backend `_` metadata keys. |
+| `limit` / `offset` | integer | — / `0` | Pagination. |
+
+```jsonc
+// just stage 5 of the 2026 edition
+{ "name": "tdf_stages", "arguments": { "year": 2026, "stage": 5 } }
+```
+
+## `tdf_teams`
+
+Teams for an edition: code, name, nationality, colours and jersey/logo image
+URLs.
+
+**Endpoint:** `GET /api/team-{year}`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `year` | integer | `2026` | Four-digit edition year. |
+| `limit` / `offset` | integer | — / `0` | Pagination. |
+
+```jsonc
+{ "name": "tdf_teams", "arguments": { "year": 2026 } }
+```
+
+## `tdf_riders`
+
+The rider start list for an edition — identity, nationality, career stats and
+team. Teams are filtered out of the upstream feed, riders are sorted by bib, and
+each rider's team code/name is resolved for you. Compact by default; pass
+`full: true` for image URLs and site links, or filter with `bib` / `team`.
+
+**Endpoint:** `GET /api/allCompetitors-{year}`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `year` | integer | `2026` | Four-digit edition year. |
+| `bib` | integer | — | Return only the rider with this bib number. |
+| `team` | string | — | Return only riders on this team code (e.g. `UEX`, `COF`). |
+| `full` | boolean | `false` | Include image URLs and per-language site links. |
+| `raw` | boolean | `false` | Raw upstream payload (backend `_` metadata + opaque `$team` hash, no team resolution). |
+| `limit` / `offset` | integer | — / `0` | Pagination. |
+
+```jsonc
+// every rider on team UEX (UAE Emirates)
+{ "name": "tdf_riders", "arguments": { "year": 2026, "team": "UEX" } }
+```
+
+<Callout type="info">
+  Rankings and results reference riders by `bib`. Join those rows to
+  `tdf_riders` on `bib` to recover names, teams and stats.
+</Callout>

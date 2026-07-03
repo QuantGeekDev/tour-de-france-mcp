@@ -1,0 +1,118 @@
+---
+title: Quickstart
+description: Connect an MCP client to the public Tour de France endpoint.
+---
+
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The server is deployed publicly over HTTPS. There is nothing to install and no
+authentication to configure — point any MCP client at the endpoint below.
+
+```text title="Streamable HTTP endpoint"
+https://tour-de-france.andru.codes/mcp
+```
+
+## Add it to a client
+
+<Tabs items={['Claude Code', 'Cursor / mcp.json', 'Raw JSON-RPC']}>
+
+<Tab value="Claude Code">
+
+```bash
+claude mcp add --transport http tour-de-france https://tour-de-france.andru.codes/mcp
+```
+
+Then start a session and ask about the race — the `tdf_*` tools appear
+automatically.
+
+</Tab>
+
+<Tab value="Cursor / mcp.json">
+
+Add the server to your client's MCP config (e.g. Cursor's `mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "tour-de-france": {
+      "type": "http",
+      "url": "https://tour-de-france.andru.codes/mcp"
+    }
+  }
+}
+```
+
+</Tab>
+
+<Tab value="Raw JSON-RPC">
+
+Talk to the transport directly. First `initialize` (grab the
+`Mcp-Session-Id` response header), then call a tool with that session id.
+
+```bash
+# 1) initialize — note the Mcp-Session-Id response header
+curl -si https://tour-de-france.andru.codes/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"curl","version":"1"}}}'
+
+# 2) call a tool (replace <SID> with the session id from step 1)
+curl -s https://tour-de-france.andru.codes/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -H 'Mcp-Session-Id: <SID>' \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"tdf_stages","arguments":{"year":2026}}}'
+```
+
+</Tab>
+
+</Tabs>
+
+## Run it locally
+
+Prefer to run your own copy? The server is a small Node project.
+
+<Steps>
+
+<Step>
+
+### Clone and build
+
+```bash
+git clone https://github.com/QuantGeekDev/tour-de-france-mcp.git
+cd tour-de-france-mcp
+npm install
+npm run build
+```
+
+</Step>
+
+<Step>
+
+### Start the HTTP server
+
+```bash
+npm start   # http-stream transport on http://127.0.0.1:8080/mcp
+```
+
+The transport (port `8080`, endpoint `/mcp`, CORS `*`) is configured in
+`src/index.ts`.
+
+</Step>
+
+<Step>
+
+### Point your client at localhost
+
+Use `http://127.0.0.1:8080/mcp` instead of the public URL in any of the
+configs above.
+
+</Step>
+
+</Steps>
+
+<Callout type="info">
+  For a stdio-based client, run `node dist/index.js` after switching the
+  transport in `src/index.ts` back to stdio. The public deployment uses HTTP.
+</Callout>

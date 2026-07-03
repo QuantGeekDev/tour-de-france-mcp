@@ -1,0 +1,80 @@
+---
+title: Conventions
+description: Shared parameters, pagination, compact responses and live-data behaviour.
+---
+
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+Every tool follows the same small set of conventions. Learn them once and the
+whole surface is predictable.
+
+## Shared parameters
+
+Most tools accept some combination of these:
+
+| Parameter | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `year` | integer | `2026` | Four-digit Tour de France edition year. |
+| `stage` | integer | `1` | Stage number `1`–`21`. `0` = pre-race / general bucket on some rankings. |
+| `lang` | enum | `en` | Content language: `en`, `fr`, `es`, `de` (`tdf_stage_article` only). |
+| `limit` | integer | — | Max items to return. Omit for all. |
+| `offset` | integer | `0` | Items to skip from the start. |
+
+<Callout type="warn">
+  `tdf_stages` uses `stage` as an **optional filter** (omit it for the whole
+  edition), whereas the per-stage tools default `stage` to `1`.
+</Callout>
+
+## Pagination
+
+Every list-returning tool accepts `limit` and `offset`, applied after the server
+sorts and filters the rows. The two single-object tools — `tdf_event` and
+`tdf_active_checkpoint` — do not paginate.
+
+```jsonc
+// riders 21–40 of the start list
+{ "name": "tdf_riders", "arguments": { "year": 2026, "offset": 20, "limit": 20 } }
+```
+
+## Compact responses
+
+Responses are **compact by default**. Backend bookkeeping keys
+(`_bind`, `_origin`, `_parent`, `_virtual`, `_updatedAt`, `_gets`, `_class`)
+are stripped everywhere. The join keys `_id` and `_key` are intentionally
+**kept**.
+
+Two tools also drop the heaviest fields unless you opt in:
+
+| Tool | Default | With `full: true` |
+| --- | --- | --- |
+| `tdf_stages` | ~5 KB, no per-city route HTML | ~160 KB, full French route descriptions |
+| `tdf_riders` | ~30 KB identity + stats, team resolved | full payload incl. image URLs & site links |
+
+Pass `raw: true` on either tool to keep the backend `_` metadata (and, for
+riders, the opaque `$team` hash instead of the resolved team code).
+
+## Live vs. static data
+
+Some tools only return data while a stage is actually being raced. Before the
+stage is under way the upstream API answers `HTTP 204`, which this server
+normalises to an empty array `[]`.
+
+Tools that are empty outside of live racing include `tdf_rider_telemetry`,
+`tdf_group_telemetry`, `tdf_race_groups`, `tdf_live_commentary`,
+`tdf_convoy_vehicles` and `tdf_stage_results` (which fills in as riders finish).
+
+## Joining data
+
+Results and rankings reference riders by **bib number**. Resolve identities by
+joining to `tdf_riders`:
+
+<Steps>
+<Step>Call `tdf_rankings` (or `tdf_stage_results`) for a stage — rows carry a `bib`.</Step>
+<Step>Call `tdf_riders` and match on `bib` to get name, nationality, team and stats.</Step>
+</Steps>
+
+## Encoding
+
+The upstream API and this server both emit **UTF-8**, so accented French names
+(e.g. *Kévin Vauquelin*) round-trip correctly. If a client renders `Ã©` or `�`,
+that is the client decoding UTF-8 as latin1/cp1252 — not a server bug.
