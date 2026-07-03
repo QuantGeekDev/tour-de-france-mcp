@@ -9,7 +9,7 @@ type Input = z.infer<typeof schema>;
 class GetSocialTool extends MCPTool<Input, typeof schema> {
   name = "get_social";
   description =
-    "Curated social-media embeds feed. Often empty outside active promotion.";
+    "Curated social-media embed items shown on the site. Marketing content, not race results, and usually empty outside active campaigns or live coverage. Returns an array (often empty).";
   schema = schema;
 
   async execute(_input: Input) {

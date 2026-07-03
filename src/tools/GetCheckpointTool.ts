@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetCheckpointTool extends MCPTool<Input, typeof schema> {
   name = "get_checkpoint";
   description =
-    "The currently active checkpoint document for a stage.";
+    "The single currently-active checkpoint for a stage during live racing, i.e. roughly where the head of the race is now. Only meaningful while the stage is running; for the complete route use get_checkpoint_list. Returns one wrapped checkpoint document.";
   schema = schema;
 
   async execute({ year, stage }: Input) {

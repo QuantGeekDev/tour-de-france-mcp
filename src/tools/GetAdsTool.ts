@@ -9,7 +9,7 @@ type Input = z.infer<typeof schema>;
 class GetAdsTool extends MCPTool<Input, typeof schema> {
   name = "get_ads";
   description =
-    "Advertising placement definitions used by the Race Center site.";
+    "Advertising placement definitions (ad units) used by the site UI. Operational/marketing metadata with no race data. Returns a small array.";
   schema = schema;
 
   async execute(_input: Input) {

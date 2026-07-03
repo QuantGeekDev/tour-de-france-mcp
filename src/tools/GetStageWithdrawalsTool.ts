@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetStageWithdrawalsTool extends MCPTool<Input, typeof schema> {
   name = "get_stage_withdrawals";
   description =
-    "Abandons / withdrawals recorded during a stage.";
+    "Riders who abandoned (DNF) or were withdrawn during a stage, with the rider reference. Join bib to get_all_competitors for names. Empty until an abandon occurs in that stage.";
   schema = schema;
 
   async execute({ year, stage }: Input) {

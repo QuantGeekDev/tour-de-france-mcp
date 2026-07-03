@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetRankingTypeTrialTool extends MCPTool<Input, typeof schema> {
   name = "get_ranking_type_trial";
   description =
-    "Time-trial ranking for a stage.";
+    "Time-trial classification for a time-trial stage (individual or team TT), as ranking documents with times and gaps. Only meaningful for TT stages (check the get_stages type field); returns [] for road stages or before results exist. Join bib to get_all_competitors.";
   schema = schema;
 
   async execute({ year, stage }: Input) {

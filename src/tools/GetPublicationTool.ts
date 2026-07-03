@@ -26,7 +26,7 @@ type Input = z.infer<typeof schema>;
 class GetPublicationTool extends MCPTool<Input, typeof schema> {
   name = "get_publication";
   description =
-    "Localized editorial / CMS publication content for a stage.";
+    "Localized editorial/CMS article content attached to a stage (stage preview or report prose) in the requested language (lang: en/fr/es/de). Free text, not structured results, and may be empty if no article is published for that stage and language.";
   schema = schema;
 
   async execute({ lang, year, stage }: Input) {

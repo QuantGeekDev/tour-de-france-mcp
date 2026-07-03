@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetExtraVehicleTool extends MCPTool<Input, typeof schema> {
   name = "get_extra_vehicle";
   description =
-    "Race-convoy vehicle positions (caravan, medical, etc.). Empty pre-race.";
+    "LIVE positions of non-rider race-convoy vehicles (publicity caravan, medical, commissaires) along the route. Niche and live-only; returns [] outside live racing.";
   schema = schema;
 
   async execute({ year, stage }: Input) {

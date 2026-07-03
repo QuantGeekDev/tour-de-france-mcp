@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetRankingTypeJerseysTool extends MCPTool<Input, typeof schema> {
   name = "get_ranking_type_jerseys";
   description =
-    "Jersey standings for a stage (yellow / green / polka-dot / white).";
+    "Classification-jersey leaders for a stage: yellow (overall/GC), green (points), polka-dot (mountains/KOM), and white (best young rider). Returns ranking documents grouped by jersey type; join bib to get_all_competitors for the rider. Empty before the stage has results.";
   schema = schema;
 
   async execute({ year, stage }: Input) {

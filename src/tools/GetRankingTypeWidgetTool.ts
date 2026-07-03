@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetRankingTypeWidgetTool extends MCPTool<Input, typeof schema> {
   name = "get_ranking_type_widget";
   description =
-    "Compact ranking payload for embeddable widgets.";
+    "Slimmed-down standings used by the site's embeddable widgets, trimmed for display. Same underlying data as get_ranking_type but less detail, so prefer get_ranking_type for analysis. Empty before the stage has results.";
   schema = schema;
 
   async execute({ year, stage }: Input) {

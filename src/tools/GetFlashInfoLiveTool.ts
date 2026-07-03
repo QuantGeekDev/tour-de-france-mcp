@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetFlashInfoLiveTool extends MCPTool<Input, typeof schema> {
   name = "get_flash_info_live";
   description =
-    "Live text commentary / flash-info feed for a stage. Empty pre-race.";
+    "LIVE text commentary feed for a stage: time-ordered flash items (attacks, crashes, time gaps, result flashes) as the stage unfolds. Use to narrate what is happening in real time. Returns [] before the stage starts.";
   schema = schema;
 
   async execute({ year, stage }: Input) {

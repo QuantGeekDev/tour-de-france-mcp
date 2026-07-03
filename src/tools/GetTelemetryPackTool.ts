@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetTelemetryPackTool extends MCPTool<Input, typeof schema> {
   name = "get_telemetry_pack";
   description =
-    "Live telemetry for on-course groups. Empty pre-race.";
+    "LIVE aggregate telemetry for on-course groups (position and speed of the peloton/breakaway). Companion to get_pack; only has data during live racing and returns [] otherwise.";
   schema = schema;
 
   async execute({ year, stage }: Input) {

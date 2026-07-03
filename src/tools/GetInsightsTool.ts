@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetInsightsTool extends MCPTool<Input, typeof schema> {
   name = "get_insights";
   description =
-    "Stats / insight cards for a stage.";
+    "Editorial stats and insight cards for a stage (fun facts and key numbers surfaced in the UI). Supplementary content, not core results, and may be empty when none are published.";
   schema = schema;
 
   async execute({ year, stage }: Input) {

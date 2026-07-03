@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetRankingTypeTool extends MCPTool<Input, typeof schema> {
   name = "get_ranking_type";
   description =
-    "Ranking / classification documents for a stage (general, stage, points, mountain, youth).";
+    "Primary results tool: classification standings for a stage. Returns ranking documents, each with a type (general/GC, stage, points, mountain, youth), a status, and a rankings[] array of {position, bib, time or gap, bonus, penalty}. Join each entry's bib to get_all_competitors for rider names/teams. Empty until the stage has results; pass stage=0 for the pre-race/general bucket.";
   schema = schema;
 
   async execute({ year, stage }: Input) {

@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetCheckpointListTool extends MCPTool<Input, typeof schema> {
   name = "get_checkpoint_list";
   description =
-    "Ordered timing/geographic checkpoints along a stage route (coords + schedules).";
+    "Full ordered list of route checkpoints for a stage (km markers, intermediate sprints, categorized climbs, feed zones), about 39 for a road stage. Each entry has cumulative length in metres from the start, latitude/longitude, country, and estimated pass times at low/medium race speed plus the publicity-caravan schedule. Static route data, available before the race; use it to describe the parcours.";
   schema = schema;
 
   async execute({ year, stage }: Input) {

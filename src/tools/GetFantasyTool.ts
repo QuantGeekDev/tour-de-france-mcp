@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetFantasyTool extends MCPTool<Input, typeof schema> {
   name = "get_fantasy";
   description =
-    "Fantasy-game data for a stage.";
+    "Fantasy-game metadata for a stage (rider picks/values used by the official fantasy game). Not race results, use get_ranking_type for those. Often empty outside the fantasy context.";
   schema = schema;
 
   async execute({ year, stage }: Input) {

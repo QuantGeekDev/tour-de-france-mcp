@@ -22,7 +22,7 @@ type Input = z.infer<typeof schema>;
 class GetPackTool extends MCPTool<Input, typeof schema> {
   name = "get_pack";
   description =
-    "On-course groups (peloton, breakaway, chasers) with time gaps. Empty pre-race.";
+    "LIVE race situation for a stage: the on-course groups (peloton, breakaway(s), chase groups) with their time gaps and, where available, rider composition. Use during a live stage to see who is off the front and by how much. Returns [] before or after the stage is live.";
   schema = schema;
 
   async execute({ year, stage }: Input) {
