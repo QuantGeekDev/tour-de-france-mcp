@@ -138,6 +138,7 @@ resource "aws_instance" "this" {
   key_name               = aws_key_pair.this.key_name
   subnet_id              = data.aws_subnets.default.ids[0]
   vpc_security_group_ids = [aws_security_group.this.id]
+  iam_instance_profile   = aws_iam_instance_profile.ec2_ssm.name
 
   user_data = templatefile("${path.module}/user_data.sh.tftpl", {
     domain   = var.domain_name
