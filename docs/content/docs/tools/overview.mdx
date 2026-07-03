@@ -1,0 +1,63 @@
+---
+title: Overview
+description: All 22 tdf_* tools at a glance, grouped by domain.
+---
+
+Every tool is prefixed `tdf_` and returns compact JSON. Parameters shared across
+tools (`year`, `stage`, `lang`, `limit`, `offset`) are documented in
+[Conventions](/docs/concepts). The tables below list each tool's own parameters
+and the upstream endpoint it proxies.
+
+## Race structure
+
+Reference data for an edition — mostly stable before and during the race.
+
+| Tool | Parameters | Endpoint |
+| --- | --- | --- |
+| [`tdf_event`](/docs/tools/race-structure#tdf_event) | — | `/api/event` |
+| [`tdf_stages`](/docs/tools/race-structure#tdf_stages) | `year`, `stage?`, `full?`, `raw?`, +page | `/api/stage-{year}` |
+| [`tdf_teams`](/docs/tools/race-structure#tdf_teams) | `year`, +page | `/api/team-{year}` |
+| [`tdf_riders`](/docs/tools/race-structure#tdf_riders) | `year`, `bib?`, `team?`, `full?`, `raw?`, +page | `/api/allCompetitors-{year}` |
+
+## Rankings & results
+
+Classifications and finish orders for a given stage.
+
+| Tool | Parameters | Endpoint |
+| --- | --- | --- |
+| [`tdf_rankings`](/docs/tools/rankings#tdf_rankings) | `year`, `stage`, +page | `/api/rankingType-{year}-{stage}` |
+| [`tdf_stage_results`](/docs/tools/rankings#tdf_stage_results) | `year`, `stage`, +page | `/api/rankingTypeArrival-{year}-{stage}` |
+| [`tdf_jersey_standings`](/docs/tools/rankings#tdf_jersey_standings) | `year`, `stage`, +page | `/api/rankingTypeJerseys-{year}-{stage}` |
+| [`tdf_time_trial_rankings`](/docs/tools/rankings#tdf_time_trial_rankings) | `year`, `stage`, +page | `/api/rankingTypeTrial-{year}-{stage}` |
+| [`tdf_rankings_widget`](/docs/tools/rankings#tdf_rankings_widget) | `year`, `stage`, +page | `/api/rankingTypeWidget-{year}-{stage}` |
+
+## Live race
+
+Data that populates only while a stage is under way.
+
+| Tool | Parameters | Endpoint |
+| --- | --- | --- |
+| [`tdf_rider_telemetry`](/docs/tools/live#tdf_rider_telemetry) | `year`, +page | `/api/telemetryCompetitor-{year}` |
+| [`tdf_group_telemetry`](/docs/tools/live#tdf_group_telemetry) | `year`, `stage`, +page | `/api/telemetryPack-{year}-{stage}` |
+| [`tdf_race_groups`](/docs/tools/live#tdf_race_groups) | `year`, `stage`, +page | `/api/pack-{year}-{stage}` |
+| [`tdf_checkpoints`](/docs/tools/live#tdf_checkpoints) | `year`, `stage`, +page | `/api/checkpointList-{year}-{stage}` |
+| [`tdf_active_checkpoint`](/docs/tools/live#tdf_active_checkpoint) | `year`, `stage` | `/api/checkpoint-{year}-{stage}` |
+| [`tdf_live_commentary`](/docs/tools/live#tdf_live_commentary) | `year`, `stage`, +page | `/api/flashInfoLive-{year}-{stage}` |
+| [`tdf_convoy_vehicles`](/docs/tools/live#tdf_convoy_vehicles) | `year`, `stage`, +page | `/api/extraVehicle-{year}-{stage}` |
+| [`tdf_withdrawals`](/docs/tools/live#tdf_withdrawals) | `year`, `stage`, +page | `/api/stageWithdrawals-{year}-{stage}` |
+
+## Media & meta
+
+Editorial, promotional and platform-configuration feeds.
+
+| Tool | Parameters | Endpoint |
+| --- | --- | --- |
+| [`tdf_stage_article`](/docs/tools/media#tdf_stage_article) | `lang`, `year`, `stage`, +page | `/api/publication_{lang}-{year}-{stage}` |
+| [`tdf_insights`](/docs/tools/media#tdf_insights) | `year`, `stage`, +page | `/api/insights-{year}-{stage}` |
+| [`tdf_fantasy`](/docs/tools/media#tdf_fantasy) | `year`, `stage`, +page | `/api/fantasy-{year}-{stage}` |
+| [`tdf_social`](/docs/tools/media#tdf_social) | +page | `/api/social` |
+| [`tdf_ads`](/docs/tools/media#tdf_ads) | +page | `/api/ad` |
+
+<Callout type="info">
+  `+page` means the tool also accepts `limit` / `offset` pagination.
+</Callout>

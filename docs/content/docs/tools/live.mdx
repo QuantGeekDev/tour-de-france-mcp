@@ -1,0 +1,108 @@
+---
+title: Live race
+description: Telemetry, on-course groups, checkpoints, commentary and withdrawals.
+---
+
+These tools reflect what is happening on the road right now. Most return `[]`
+until their stage is actually being raced (the upstream API answers `204`, which
+the server normalises to an empty array).
+
+Unless noted, each takes `year` (default `2026`), `stage` (default `1`) and
+`limit` / `offset` pagination.
+
+## `tdf_rider_telemetry`
+
+Live per-rider telemetry (position, speed, gap). Note this endpoint is keyed by
+**year only** — there is no `stage` parameter. Empty until a stage is racing.
+
+**Endpoint:** `GET /api/telemetryCompetitor-{year}`
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `year` | integer | `2026` | Four-digit edition year. |
+| `limit` / `offset` | integer | — / `0` | Pagination. |
+
+```jsonc
+{ "name": "tdf_rider_telemetry", "arguments": { "year": 2026 } }
+```
+
+## `tdf_group_telemetry`
+
+Live telemetry for on-course groups (peloton, breakaway, chase). Empty until the
+stage is racing.
+
+**Endpoint:** `GET /api/telemetryPack-{year}-{stage}`
+
+```jsonc
+{ "name": "tdf_group_telemetry", "arguments": { "year": 2026, "stage": 12 } }
+```
+
+## `tdf_race_groups`
+
+On-course groups (peloton, breakaway, chasers) with time gaps between them.
+Empty until the stage is racing.
+
+**Endpoint:** `GET /api/pack-{year}-{stage}`
+
+```jsonc
+{ "name": "tdf_race_groups", "arguments": { "year": 2026, "stage": 12 } }
+```
+
+## `tdf_checkpoints`
+
+Ordered route checkpoints for a stage: coordinates plus estimated pass-time
+schedules. Available ahead of the stage as a route plan.
+
+**Endpoint:** `GET /api/checkpointList-{year}-{stage}`
+
+```jsonc
+{ "name": "tdf_checkpoints", "arguments": { "year": 2026, "stage": 12 } }
+```
+
+## `tdf_active_checkpoint`
+
+The currently-active checkpoint for a stage — a single live document (not a
+list, so it does not paginate).
+
+**Endpoint:** `GET /api/checkpoint-{year}-{stage}` · **Returns:** single object
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `year` | integer | `2026` | Four-digit edition year. |
+| `stage` | integer | `1` | Stage number `1`–`21`. |
+
+```jsonc
+{ "name": "tdf_active_checkpoint", "arguments": { "year": 2026, "stage": 12 } }
+```
+
+## `tdf_live_commentary`
+
+Live text commentary / flash-info feed for a stage. Empty until the stage is
+racing.
+
+**Endpoint:** `GET /api/flashInfoLive-{year}-{stage}`
+
+```jsonc
+{ "name": "tdf_live_commentary", "arguments": { "year": 2026, "stage": 12 } }
+```
+
+## `tdf_convoy_vehicles`
+
+Race-convoy vehicle positions (caravan, medical, etc.) for a stage. Empty until
+the stage is racing.
+
+**Endpoint:** `GET /api/extraVehicle-{year}-{stage}`
+
+```jsonc
+{ "name": "tdf_convoy_vehicles", "arguments": { "year": 2026, "stage": 12 } }
+```
+
+## `tdf_withdrawals`
+
+Abandons / withdrawals recorded during a stage.
+
+**Endpoint:** `GET /api/stageWithdrawals-{year}-{stage}`
+
+```jsonc
+{ "name": "tdf_withdrawals", "arguments": { "year": 2026, "stage": 12 } }
+```

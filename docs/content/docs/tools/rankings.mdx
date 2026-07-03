@@ -1,0 +1,65 @@
+---
+title: Rankings & results
+description: Classifications, stage finish orders and jersey standings.
+---
+
+These tools all take the same parameters — `year` (default `2026`), `stage`
+(default `1`, `0` is the pre-race/general bucket on some rankings) and
+`limit` / `offset` pagination — and return an array. Rows reference riders by
+`bib`; join to [`tdf_riders`](/docs/tools/race-structure#tdf_riders) to resolve
+identities.
+
+## `tdf_rankings`
+
+Ranking/classification documents for a stage: general, stage, points, mountain
+and youth classifications.
+
+**Endpoint:** `GET /api/rankingType-{year}-{stage}`
+
+```jsonc
+// general classification after stage 12
+{ "name": "tdf_rankings", "arguments": { "year": 2026, "stage": 12 } }
+```
+
+## `tdf_stage_results`
+
+Stage arrival results (finish order). Populates during and after the stage; it
+returns `[]` before riders start finishing.
+
+**Endpoint:** `GET /api/rankingTypeArrival-{year}-{stage}`
+
+```jsonc
+{ "name": "tdf_stage_results", "arguments": { "year": 2026, "stage": 12 } }
+```
+
+## `tdf_jersey_standings`
+
+Jersey standings for a stage: yellow (general), green (points), polka-dot
+(mountains) and white (young rider).
+
+**Endpoint:** `GET /api/rankingTypeJerseys-{year}-{stage}`
+
+```jsonc
+{ "name": "tdf_jersey_standings", "arguments": { "year": 2026, "stage": 12 } }
+```
+
+## `tdf_time_trial_rankings`
+
+Time-trial rankings for a stage (relevant on individual/team time-trial stages).
+
+**Endpoint:** `GET /api/rankingTypeTrial-{year}-{stage}`
+
+```jsonc
+{ "name": "tdf_time_trial_rankings", "arguments": { "year": 2026, "stage": 5 } }
+```
+
+## `tdf_rankings_widget`
+
+The compact ranking payload used by the site's embeddable widgets, for a stage.
+Handy when you only need a lightweight leaderboard.
+
+**Endpoint:** `GET /api/rankingTypeWidget-{year}-{stage}`
+
+```jsonc
+{ "name": "tdf_rankings_widget", "arguments": { "year": 2026, "stage": 12 } }
+```

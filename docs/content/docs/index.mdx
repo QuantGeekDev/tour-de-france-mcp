@@ -1,0 +1,46 @@
+---
+title: Introduction
+description: An MCP server that exposes the public Tour de France Race Center API as 22 tools.
+---
+
+The **Tour de France MCP server** is an HTTP [Model Context Protocol](https://modelcontextprotocol.io)
+server that wraps the public **Tour de France Race Center API**
+(`https://racecenter.letour.fr`) and exposes it to LLM clients as **22 read-only
+tools**.
+
+It is built with [mcp-framework](https://github.com/QuantGeekDev/mcp-framework)
+and runs over the **Streamable HTTP** transport. The upstream API is public and
+requires no authentication, so no API keys are needed to use this server.
+
+## What you can ask it
+
+Once connected, a model can answer questions like:
+
+- *"Who is leading the general classification after stage 12 of the 2026 Tour?"*
+- *"List every rider on Team UAE Emirates with their bib numbers."*
+- *"What's the route profile and distance of tomorrow's stage?"*
+- *"Give me the live gaps between the breakaway and the peloton right now."*
+
+<Cards>
+  <Card title="Quickstart" href="/docs/quickstart" description="Connect an MCP client to the public endpoint in under a minute." />
+  <Card title="Conventions" href="/docs/concepts" description="Shared parameters, pagination, compact responses and live-data behaviour." />
+  <Card title="Tool reference" href="/docs/tools/overview" description="All 22 tdf_* tools, grouped by domain." />
+  <Card title="Architecture" href="/docs/architecture" description="How the server and this docs site are deployed on AWS." />
+</Cards>
+
+## Highlights
+
+- **Self-identifying tools.** Every tool is prefixed `tdf_` and every description
+  names "Tour de France", so tools stay recognisable even when a client shows the
+  server under an opaque id.
+- **Compact by default.** Backend bookkeeping keys are stripped and the two heavy
+  tools (`tdf_stages`, `tdf_riders`) shrink dramatically unless you ask for the
+  full payload.
+- **Pagination everywhere.** Every list tool accepts `limit` / `offset`.
+- **Safe to poll gently.** The server is a thin, read-only proxy over an
+  unofficial ASO feed — no writes, no side effects.
+
+<Callout type="info">
+  This server talks to an **unofficial** feed reverse-engineered from the
+  official race site. It can change without notice — keep request rates gentle.
+</Callout>

@@ -7,6 +7,13 @@ An HTTP [Model Context Protocol](https://modelcontextprotocol.io) server (built 
 The API is public and read-only; no authentication is required. The full endpoint
 contract lives in the sibling OpenAPI spec at `../tour-de-france/docs/openapi.yaml`.
 
+## Documentation
+
+A full documentation site (Fumadocs) lives in [`docs/`](docs) and is deployed to
+**https://tdf-docs.andru.codes** (S3 + CloudFront, provisioned by
+[`infra-docs/`](infra-docs)). It covers the quickstart, conventions and a reference
+for all 22 tools. Run it locally with `cd docs && npm install && npm run dev`.
+
 ## Run it
 
 ```bash
